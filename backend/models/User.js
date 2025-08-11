@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema({
     enum: ['online', 'idle', 'dnd', 'offline'],
     default: 'online'
   },
+  friends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdAt: {
     type: Date,
     default: Date.now
