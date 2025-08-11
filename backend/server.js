@@ -1,180 +1,117 @@
-// backend/routes/servers.js
+// backend/server.js
 const express = require('express');
-const Server = require('../models/Server');
-const User = require('../models/User');
-const Channel = require('../models/Channel');
-const auth = require('../middleware/auth');
-const router = express.Router();
+const http = require('http');
+const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
 
-// Get user's servers
-router.get('/', auth, async (req, res) => {
-  try {
-    const servers = await Server.find({ members: req.user.userId })
-      .populate('ownerId', 'username avatar')
-      .populate('channels');
-    
-    res.json(servers);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// Routes
+const authRoutes = require('./routes/auth');
+const serverRoutes = require('./routes/servers');
+const channelRoutes = require('./routes/channels');
+const messageRoutes = require('./routes/messages');
+
+const app = express();
+const server = http.createServer(app);
+
+// Socket.IO setup
+const io = socketIo(server, {
+  cors: {
+    origin: "*", // In production, replace with your frontend URL
+    methods: ["GET", "POST"]
   }
 });
 
-// Create a new server
-router.post('/', auth, async (req, res) => {
-  try {
-    const { name } = req.body;
-    
-    // Create server
-    const server = new Server({
-      name,
-      ownerId: req.user.userId,
-      members: [req.user.userId]
-    });
-    
-    await server.save();
-    
-    // Create default channel
-    const defaultChannel = new Channel({
-      name: 'general',
-      type: 'text',
-      server: server._id
-    });
-    
-    await defaultChannel.save();
-    
-    // Add channel to server
-    server.channels.push(defaultChannel._id);
-    await server.save();
-    
-    res.status(201).json(server);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/servers', serverRoutes);
+app.use('/api/channels', channelRoutes);
+app.use('/api/messages', messageRoutes);
+
+// Serve frontend for all other routes (for SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Get server by ID
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const server = await Server.findById(req.params.id)
-      .populate('ownerId', 'username avatar')
-      .populate('channels');
-    
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pulsehub', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('Could not connect to MongoDB', err));
+
+// Socket.IO Logic
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+
+  // Join a channel
+  socket.on('joinChannel', (channelId, userId) => {
+    socket.join(channelId);
+    console.log(`User ${userId} joined channel ${channelId}`);
+  });
+
+  // Leave a channel
+  socket.on('leaveChannel', (channelId, userId) => {
+    socket.leave(channelId);
+    console.log(`User ${userId} left channel ${channelId}`);
+  });
+
+  // Send message
+  socket.on('sendMessage', async (messageData) => {
+    try {
+      const { channelId, content, author, serverId } = messageData;
+      
+      // Create and save message
+      const Message = require('./models/Message');
+      const newMessage = new Message({
+        content,
+        author,
+        channel: channelId,
+        server: serverId
+      });
+      
+      const savedMessage = await newMessage.save();
+      
+      // Populate author data
+      const populatedMessage = await Message.findById(savedMessage._id)
+        .populate('author', 'username avatar')
+        .exec();
+        
+      // Emit message to all users in the channel
+      io.to(channelId).emit('newMessage', populatedMessage);
+    } catch (error) {
+      console.error('Error saving message:', error);
     }
-    
-    // Check if user is a member
-    if (!server.members.includes(req.user.userId)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    res.json(server);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
-// Update server
-router.patch('/:id', auth, async (req, res) => {
-  try {
-    const server = await Server.findById(req.params.id);
-    
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    
-    // Check if user is the owner
-    if (server.ownerId.toString() !== req.user.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    const { name, icon } = req.body;
-    if (name) server.name = name;
-    if (icon) server.icon = icon;
-    
-    await server.save();
-    res.json(server);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: err.message 
+  });
 });
 
-// Delete server
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const server = await Server.findById(req.params.id);
-    
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    
-    // Check if user is the owner
-    if (server.ownerId.toString() !== req.user.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    // Delete all channels
-    await Channel.deleteMany({ server: server._id });
-    
-    // Delete server
-    await server.deleteOne();
-    
-    res.json({ message: 'Server deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`PulseHub server running on port ${PORT}`);
 });
 
-// Add member to server
-router.post('/:id/members', auth, async (req, res) => {
-  try {
-    // Fixed line - removed extra closing brace
-    const { userId } = req.body;
-    const server = await Server.findById(req.params.id);
-    
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    
-    // Check if user is a member (to invite)
-    if (!server.members.includes(req.user.userId)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    // Add user to server
-    if (!server.members.includes(userId)) {
-      server.members.push(userId);
-      await server.save();
-    }
-    
-    res.json(server);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Remove member from server
-router.delete('/:id/members/:userId', auth, async (req, res) => {
-  try {
-    const server = await Server.findById(req.params.id);
-    
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    
-    // Check if user is the owner or removing themselves
-    if (server.ownerId.toString() !== req.user.userId && req.params.userId !== req.user.userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    // Remove user from server
-    server.members = server.members.filter(id => id.toString() !== req.params.userId);
-    await server.save();
-    
-    res.json({ message: 'Member removed successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-module.exports = router;
+module.exports = { app, io };
