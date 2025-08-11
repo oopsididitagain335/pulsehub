@@ -27,7 +27,7 @@ router.get('/me', auth, async (req, res) => {
       friends: user.friends || []
     });
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching user ', error);
     res.status(500).json({ error: error.message });
   }
 });
