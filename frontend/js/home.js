@@ -28,7 +28,7 @@ async function loadHomeData() {
 function renderServers() {
     serversList.innerHTML = '';
     
-    servers.forEach(server => {
+    (servers || []).forEach(server => {
         const serverEl = document.createElement('div');
         serverEl.className = 'list-item';
         serverEl.dataset.serverId = server._id;
@@ -54,13 +54,13 @@ function renderServers() {
 function renderFriends() {
     friendsList.innerHTML = '';
     
-    friends.forEach(friend => {
+    (friends || []).forEach(friend => {
         const friendEl = document.createElement('div');
         friendEl.className = 'list-item';
         friendEl.dataset.friendId = friend._id;
         
         const status = document.createElement('span');
-        status.className = `status ${friend.status}`;
+        status.className = `status ${friend.status || 'offline'}`;
         friendEl.appendChild(status);
         
         const avatar = document.createElement('img');
@@ -86,13 +86,13 @@ function renderFriends() {
 function renderDMs() {
     dmsList.innerHTML = '';
     
-    friends.forEach(friend => {
+    (friends || []).forEach(friend => {
         const dmEl = document.createElement('div');
         dmEl.className = 'list-item';
         dmEl.dataset.friendId = friend._id;
         
         const status = document.createElement('span');
-        status.className = `status ${friend.status}`;
+        status.className = `status ${friend.status || 'offline'}`;
         dmEl.appendChild(status);
         
         const avatar = document.createElement('img');
@@ -171,7 +171,7 @@ document.getElementById('add-friend-form').addEventListener('submit', async (e) 
                 }
             }).then(res => res.json());
             
-            friends = userData.friends;
+            friends = userData.friends || [];
             renderFriends();
             renderDMs();
         } else {
