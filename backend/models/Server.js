@@ -1,3 +1,4 @@
+// backend/models/Server.js
 const mongoose = require('mongoose');
 
 const serverSchema = new mongoose.Schema({
