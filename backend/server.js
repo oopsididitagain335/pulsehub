@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const serverRoutes = require('./routes/servers');
 const channelRoutes = require('./routes/channels');
 const messageRoutes = require('./routes/messages');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/servers', serverRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);
 
 // Serve frontend for all other routes (for SPA)
 app.get('*', (req, res) => {
