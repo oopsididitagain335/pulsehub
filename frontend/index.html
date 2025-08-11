@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseHub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login/Register Screen -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <i class="fas fa-pulse"></i> PulseHub
+            </div>
+            <div class="auth-tabs">
+                <button id="login-tab" class="auth-tab active">Login</button>
+                <button id="register-tab" class="auth-tab">Register</button>
+            </div>
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <input type="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="Password" required>
+                </div>
+                <button type="submit">Log In</button>
+            </form>
+            <form id="register-form" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <input type="text" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="Password" required>
+                </div>
+                <button type="submit">Register</button>
+            </form>
+            <div id="auth-error" class="auth-error"></div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="screen">
+        <!-- Server List -->
+        <div id="server-list" class="server-list">
+            <div class="server-list-header">
+                <div class="pulsehub-logo">
+                    <i class="fas fa-pulse"></i>
+                </div>
+            </div>
+            <div id="servers-container" class="servers-container">
+                <!-- Servers will be added here dynamically -->
+            </div>
+            <button id="create-server" class="create-server-btn" title="Create Server">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- Channel List -->
+        <div id="channel-list" class="channel-list">
+            <div id="server-header" class="server-header">
+                <!-- Server name will be added here -->
+            </div>
+            <div id="channels-container" class="channels-container">
+                <!-- Channels will be added here -->
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div id="chat-area" class="chat-area">
+            <div id="chat-header" class="chat-header">
+                <!-- Channel name will be added here -->
+            </div>
+            <div id="messages-container" class="messages-container">
+                <!-- Messages will be added here -->
+            </div>
+            <div id="message-input-container" class="message-input-container">
+                <div class="message-input-wrapper">
+                    <textarea id="message-input" placeholder="Send a message"></textarea>
+                    <div class="input-actions">
+                        <i class="fas fa-paperclip input-action"></i>
+                        <i class="fas fa-plus input-action"></i>
+                        <button id="send-message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Sidebar -->
+        <div id="user-sidebar" class="user-sidebar">
+            <div id="members-container" class="members-container">
+                <div class="members-header">Members</div>
+                <!-- Members will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/servers.js"></script>
+    <script src="js/channels.js"></script>
+    <script src="js/messages.js"></script>
+</body>
+</html>

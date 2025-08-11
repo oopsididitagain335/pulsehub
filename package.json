@@ -1,0 +1,22 @@
+{
+  "name": "pulsehub",
+  "version": "1.0.0",
+  "description": "A Discord-like communication platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/pulsehub.git"
+  },
+  "keywords": [
+    "discord",
+    "chat",
+    "communication",
+    "realtime"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
