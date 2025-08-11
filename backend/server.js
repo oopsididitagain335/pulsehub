@@ -45,10 +45,15 @@ app.get('*', (req, res) => {
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pulsehub', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000
 })
 .then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('Could not connect to MongoDB', err));
+.catch(err => {
+  console.error('Could not connect to MongoDB', err);
+  process.exit(1);
+});
 
 // Socket.IO Logic
 io.on('connection', (socket) => {
