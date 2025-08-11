@@ -1,3 +1,4 @@
+// backend/routes/servers.js
 const express = require('express');
 const Server = require('../models/Server');
 const User = require('../models/User');
@@ -127,7 +128,7 @@ router.delete('/:id', auth, async (req, res) => {
 // Add member to server
 router.post('/:id/members', auth, async (req, res) => {
   try {
-    const { userId } } = req.body;
+    const { userId } = req.body;
     const server = await Server.findById(req.params.id);
     
     if (!server) {
