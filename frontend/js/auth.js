@@ -41,8 +41,8 @@ loginForm.addEventListener('submit', async (e) => {
         if (response.ok) {
             localStorage.setItem('token', data.token);
             window.currentUser = data.user;
-            showMainApp();
-            loadServers();
+            showHomeScreen();
+            loadHomeData();
         } else {
             authError.textContent = data.error || 'Login failed';
         }
@@ -70,8 +70,8 @@ registerForm.addEventListener('submit', async (e) => {
         if (response.ok) {
             localStorage.setItem('token', data.token);
             window.currentUser = data.user;
-            showMainApp();
-            loadServers();
+            showHomeScreen();
+            loadHomeData();
         } else {
             authError.textContent = data.error || 'Registration failed';
         }
