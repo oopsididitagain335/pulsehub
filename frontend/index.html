@@ -45,67 +45,111 @@
 
     <!-- Main App -->
     <div id="main-app" class="screen">
-        <!-- Server List -->
-        <div id="server-list" class="server-list">
-            <div class="server-list-header">
-                <div class="pulsehub-logo">
-                    <i class="fas fa-pulse"></i>
+        <!-- Home Screen -->
+        <div id="home-screen" class="home-screen">
+            <div class="home-header">
+                <h1>Home</h1>
+                <div class="user-profile">
+                    <img src="https://i.pravatar.cc/150?img=6" alt="User" class="user-avatar">
+                    <span id="username">User</span>
                 </div>
             </div>
-            <div id="servers-container" class="servers-container">
-                <!-- Servers will be added here dynamically -->
-            </div>
-            <button id="create-server" class="create-server-btn" title="Create Server">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-
-        <!-- Channel List -->
-        <div id="channel-list" class="channel-list">
-            <div id="server-header" class="server-header">
-                <!-- Server name will be added here -->
-            </div>
-            <div id="channels-container" class="channels-container">
-                <!-- Channels will be added here -->
-            </div>
-        </div>
-
-        <!-- Chat Area -->
-        <div id="chat-area" class="chat-area">
-            <div id="chat-header" class="chat-header">
-                <!-- Channel name will be added here -->
-            </div>
-            <div id="messages-container" class="messages-container">
-                <!-- Messages will be added here -->
-            </div>
-            <div id="message-input-container" class="message-input-container">
-                <div class="message-input-wrapper">
-                    <textarea id="message-input" placeholder="Send a message"></textarea>
-                    <div class="input-actions">
-                        <i class="fas fa-paperclip input-action"></i>
-                        <i class="fas fa-plus input-action"></i>
-                        <button id="send-message">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+            
+            <div class="home-content">
+                <!-- Servers Section -->
+                <div class="section">
+                    <h2>Your Servers</h2>
+                    <div id="servers-list" class="list-container">
+                        <!-- Servers will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Friends Section -->
+                <div class="section">
+                    <h2>Friends</h2>
+                    <div class="friends-actions">
+                        <button id="add-friend-btn" class="btn btn-outline">Add Friend</button>
+                    </div>
+                    <div id="friends-list" class="list-container">
+                        <!-- Friends will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Direct Messages Section -->
+                <div class="section">
+                    <h2>Direct Messages</h2>
+                    <div id="dms-list" class="list-container">
+                        <!-- DMs will be added here dynamically -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- User Sidebar -->
-        <div id="user-sidebar" class="user-sidebar">
-            <div id="members-container" class="members-container">
-                <div class="members-header">Members</div>
-                <!-- Members will be added here -->
+        <!-- Server View -->
+        <div id="server-view" class="server-view" style="display: none;">
+            <!-- Server Sidebar -->
+            <div class="server-sidebar">
+                <div id="server-header" class="server-header">
+                    <!-- Server name will be added here -->
+                </div>
+                <div id="channels-container" class="channels-container">
+                    <!-- Channels will be added here -->
+                </div>
             </div>
+
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <div id="chat-header" class="chat-header">
+                    <!-- Channel name will be added here -->
+                </div>
+                <div id="messages-container" class="messages-container">
+                    <!-- Messages will be added here -->
+                </div>
+                <div id="message-input-container" class="message-input-container">
+                    <div class="message-input-wrapper">
+                        <textarea id="message-input" placeholder="Send a message"></textarea>
+                        <div class="input-actions">
+                            <i class="fas fa-paperclip input-action"></i>
+                            <i class="fas fa-plus input-action"></i>
+                            <button id="send-message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Sidebar -->
+            <div id="user-sidebar" class="user-sidebar">
+                <div id="members-container" class="members-container">
+                    <div class="members-header">Members</div>
+                    <!-- Members will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Friend Modal -->
+    <div id="add-friend-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Add Friend</h2>
+            <form id="add-friend-form">
+                <div class="form-group">
+                    <input type="text" id="friend-username" placeholder="Username or Email" required>
+                </div>
+                <button type="submit">Add Friend</button>
+            </form>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/app.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
     <script src="js/servers.js"></script>
     <script src="js/channels.js"></script>
     <script src="js/messages.js"></script>
+    <script src="js/friends.js"></script>
 </body>
 </html>
