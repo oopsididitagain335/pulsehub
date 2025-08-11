@@ -1,4 +1,3 @@
-cat > backend/models/Server.js << 'EOF'
 const mongoose = require('mongoose');
 
 const serverSchema = new mongoose.Schema({
