@@ -36,12 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(data => {
             currentUser = data.user;
-            servers = data.servers;
-            friends = data.friends;
+            servers = data.servers || [];
+            friends = data.friends || [];
             showHomeScreen();
             loadHomeData();
         })
-        .catch(() => {
+        .catch(error => {
+            console.error('Auth error:', error);
             localStorage.removeItem('token');
             showAuthScreen();
         });
