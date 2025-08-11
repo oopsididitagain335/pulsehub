@@ -1,83 +1,128 @@
 // DOM Elements
-const serversContainer = document.getElementById('servers-container');
-const createServerBtn = document.getElementById('create-server');
 const serverHeader = document.getElementById('server-header');
+const channelsContainer = document.getElementById('channels-container');
+const chatHeader = document.getElementById('chat-header');
 
-// Load servers
-async function loadServers() {
+// Load server data
+async function loadServerData(serverId) {
     try {
-        const response = await fetch('/api/servers', {
+        const response = await fetch(`/api/servers/${serverId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
         
         if (response.ok) {
-            servers = await response.json();
-            renderServers();
+            window.channels = await response.json();
+            renderChannels();
+            
+            // Load first channel by default
+            if (window.channels.channels.length > 0) {
+                const firstChannel = window.channels.channels[0];
+                openChannel(firstChannel);
+            }
         }
     } catch (error) {
-        console.error('Error loading servers:', error);
+        console.error('Error loading server data:', error);
     }
 }
 
-// Render servers
-function renderServers() {
-    serversContainer.innerHTML = '';
+// Render channels
+function renderChannels() {
+    channelsContainer.innerHTML = '';
     
-    servers.forEach(server => {
-        const serverEl = document.createElement('div');
-        serverEl.className = 'server';
-        serverEl.dataset.serverId = server._id;
+    const textChannels = window.channels.channels.filter(c => c.type === 'text');
+    if (textChannels.length > 0) {
+        const categoryHeader = document.createElement('div');
+        categoryHeader.className = 'channel-category';
+        categoryHeader.textContent = 'Text Channels';
+        channelsContainer.appendChild(categoryHeader);
         
-        if (window.currentServer && server._id === window.currentServer._id) {
-            serverEl.classList.add('active');
-        }
-        
-        // Use first letter of server name as icon
-        const icon = document.createElement('div');
-        icon.className = 'server-icon';
-        icon.textContent = server.name.charAt(0).toUpperCase();
-        serverEl.appendChild(icon);
-        
-        serverEl.addEventListener('click', () => {
-            window.currentServer = server;
-            document.querySelectorAll('.server').forEach(el => {
-                el.classList.remove('active');
-            });
-            serverEl.classList.add('active');
-            serverHeader.textContent = server.name;
-            loadChannels(server._id);
-        });
-        
-        serversContainer.appendChild(serverEl);
-    });
-}
-
-// Create server
-createServerBtn.addEventListener('click', async () => {
-    const serverName = prompt('Enter server name:');
-    
-    if (serverName && serverName.trim()) {
-        try {
-            const response = await fetch('/api/servers', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ name: serverName.trim() })
-            });
+        textChannels.forEach(channel => {
+            const channelEl = document.createElement('div');
+            channelEl.className = 'channel';
+            channelEl.dataset.channelId = channel._id;
             
-            const data = await response.json();
-            
-            if (response.ok) {
-                loadServers();
-            } else {
-                alert(data.error);
+            if (window.currentChannel && channel._id === window.currentChannel._id) {
+                channelEl.classList.add('active');
             }
-        } catch (error) {
-            alert('An error occurred while creating the server.');
-        }
+            
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = '#';
+            channelEl.appendChild(icon);
+            
+            const name = document.createElement('span');
+            name.textContent = channel.name;
+            channelEl.appendChild(name);
+            
+            channelEl.addEventListener('click', () => {
+                openChannel(channel);
+            });
+            
+            channelsContainer.appendChild(channelEl);
+        });
     }
-});
+    
+    const voiceChannels = window.channels.channels.filter(c => c.type === 'voice');
+    if (voiceChannels.length > 0) {
+        const categoryHeader = document.createElement('div');
+        categoryHeader.className = 'channel-category';
+        categoryHeader.textContent = 'Voice Channels';
+        channelsContainer.appendChild(categoryHeader);
+        
+        voiceChannels.forEach(channel => {
+            const channelEl = document.createElement('div');
+            channelEl.className = 'channel';
+            channelEl.dataset.channelId = channel._id;
+            
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = '🔊';
+            channelEl.appendChild(icon);
+            
+            const name = document.createElement('span');
+            name.textContent = channel.name;
+            channelEl.appendChild(name);
+            
+            channelEl.addEventListener('click', () => {
+                openChannel(channel);
+            });
+            
+            channelsContainer.appendChild(channelEl);
+        });
+    }
+}
+
+// Open channel
+async function openChannel(channel) {
+    window.currentChannel = channel;
+    
+    // Update active channel
+    document.querySelectorAll('.channel').forEach(el => {
+        if (el.dataset.channelId === channel._id) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
+    });
+    
+    // Update chat header
+    chatHeader.innerHTML = '';
+    const icon = document.createElement('span');
+    icon.className = 'channel-icon';
+    icon.textContent = '#';
+    chatHeader.appendChild(icon);
+    
+    const title = document.createElement('h2');
+    title.textContent = channel.name;
+    chatHeader.appendChild(title);
+    
+    // Load messages
+    await loadMessages(channel._id);
+    
+    // Join socket room
+    if (window.socket) {
+        window.socket.emit('joinChannel', channel._id, window.currentUser.id);
+    }
+}
