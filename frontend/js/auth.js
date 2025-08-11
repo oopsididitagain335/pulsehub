@@ -47,6 +47,7 @@ loginForm.addEventListener('submit', async (e) => {
             authError.textContent = data.error || 'Login failed';
         }
     } catch (error) {
+        console.error('Login error:', error);
         authError.textContent = 'An error occurred. Please try again.';
     }
 });
@@ -76,6 +77,7 @@ registerForm.addEventListener('submit', async (e) => {
             authError.textContent = data.error || 'Registration failed';
         }
     } catch (error) {
+        console.error('Registration error:', error);
         authError.textContent = 'An error occurred. Please try again.';
     }
 });
