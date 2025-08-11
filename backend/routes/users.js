@@ -24,9 +24,10 @@ router.get('/me', auth, async (req, res) => {
     res.json({
       user,
       servers,
-      friends: user.friends
+      friends: user.friends || []
     });
   } catch (error) {
+    console.error('Error fetching user data:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -59,11 +60,14 @@ router.post('/friends', auth, async (req, res) => {
     }
     
     // Check if already friends
-    if (user.friends.includes(friendId)) {
+    if (user.friends && user.friends.includes(friendId)) {
       return res.status(400).json({ error: 'Already friends' });
     }
     
     // Add friend to user
+    if (!user.friends) {
+      user.friends = [];
+    }
     user.friends.push(friendId);
     await user.save();
     
@@ -83,8 +87,10 @@ router.delete('/friends/:friendId', auth, async (req, res) => {
     }
     
     // Remove friend
-    user.friends = user.friends.filter(id => id.toString() !== req.params.friendId);
-    await user.save();
+    if (user.friends) {
+      user.friends = user.friends.filter(id => id.toString() !== req.params.friendId);
+      await user.save();
+    }
     
     res.json({ message: 'Friend removed successfully' });
   } catch (error) {
