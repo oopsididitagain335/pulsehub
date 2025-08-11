@@ -1,3 +1,4 @@
+// backend/models/Server.js
 const mongoose = require('mongoose');
 
 const serverSchema = new mongoose.Schema({
@@ -30,4 +31,3 @@ const serverSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Server', serverSchema);
-EOF
