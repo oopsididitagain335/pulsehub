@@ -1,127 +1,145 @@
 // DOM Elements
-const channelsContainer = document.getElementById('channels-container');
-const chatHeader = document.getElementById('chat-header');
+const messagesContainer = document.getElementById('messages-container');
+const messageInput = document.getElementById('message-input');
+const sendMessageBtn = document.getElementById('send-message');
 
-// Load channels
-async function loadChannels(serverId) {
+// Load messages
+async function loadMessages(channelId) {
     try {
-        const response = await fetch(`/api/channels/server/${serverId}`, {
+        const response = await fetch(`/api/messages/channel/${channelId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
         
         if (response.ok) {
-            window.channels = await response.json();
-            renderChannels();
-            
-            // Load first channel by default
-            if (window.channels.length > 0) {
-                const firstChannel = window.channels[0];
-                openChannel(firstChannel);
-            }
+            window.messages = await response.json();
+            renderMessages();
+            scrollToBottom();
         }
     } catch (error) {
-        console.error('Error loading channels:', error);
+        console.error('Error loading messages:', error);
     }
 }
 
-// Render channels
-function renderChannels() {
-    channelsContainer.innerHTML = '';
+// Render messages
+function renderMessages() {
+    messagesContainer.innerHTML = '';
     
-    const textChannels = window.channels.filter(c => c.type === 'text');
-    if (textChannels.length > 0) {
-        const categoryHeader = document.createElement('div');
-        categoryHeader.className = 'channel-category';
-        categoryHeader.textContent = 'Text Channels';
-        channelsContainer.appendChild(categoryHeader);
-        
-        textChannels.forEach(channel => {
-            const channelEl = document.createElement('div');
-            channelEl.className = 'channel';
-            channelEl.dataset.channelId = channel._id;
-            
-            if (window.currentChannel && channel._id === window.currentChannel._id) {
-                channelEl.classList.add('active');
-            }
-            
-            const icon = document.createElement('span');
-            icon.className = 'icon';
-            icon.textContent = '#';
-            channelEl.appendChild(icon);
-            
-            const name = document.createElement('span');
-            name.textContent = channel.name;
-            channelEl.appendChild(name);
-            
-            channelEl.addEventListener('click', () => {
-                openChannel(channel);
-            });
-            
-            channelsContainer.appendChild(channelEl);
-        });
-    }
-    
-    const voiceChannels = window.channels.filter(c => c.type === 'voice');
-    if (voiceChannels.length > 0) {
-        const categoryHeader = document.createElement('div');
-        categoryHeader.className = 'channel-category';
-        categoryHeader.textContent = 'Voice Channels';
-        channelsContainer.appendChild(categoryHeader);
-        
-        voiceChannels.forEach(channel => {
-            const channelEl = document.createElement('div');
-            channelEl.className = 'channel';
-            channelEl.dataset.channelId = channel._id;
-            
-            const icon = document.createElement('span');
-            icon.className = 'icon';
-            icon.textContent = '🔊';
-            channelEl.appendChild(icon);
-            
-            const name = document.createElement('span');
-            name.textContent = channel.name;
-            channelEl.appendChild(name);
-            
-            channelEl.addEventListener('click', () => {
-                openChannel(channel);
-            });
-            
-            channelsContainer.appendChild(channelEl);
-        });
-    }
-}
-
-// Open channel
-async function openChannel(channel) {
-    window.currentChannel = channel;
-    
-    // Update active channel
-    document.querySelectorAll('.channel').forEach(el => {
-        if (el.dataset.channelId === channel._id) {
-            el.classList.add('active');
-        } else {
-            el.classList.remove('active');
-        }
+    window.messages.forEach(message => {
+        addMessage(message);
     });
+}
+
+// Add a single message
+function addMessage(message) {
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message';
     
-    // Update chat header
-    chatHeader.innerHTML = '';
-    const icon = document.createElement('span');
-    icon.className = 'channel-icon';
-    icon.textContent = '#';
-    chatHeader.appendChild(icon);
+    // Avatar
+    const avatar = document.createElement('img');
+    avatar.className = 'avatar';
+    avatar.src = message.author.avatar || 'https://via.placeholder.com/40';
+    avatar.alt = message.author.username;
+    messageEl.appendChild(avatar);
     
-    const title = document.createElement('h2');
-    title.textContent = channel.name;
-    chatHeader.appendChild(title);
+    // Content
+    const content = document.createElement('div');
+    content.className = 'message-content';
     
-    // Load messages
-    await loadMessages(channel._id);
+    // Header
+    const header = document.createElement('div');
+    header.className = 'message-header';
     
-    // Join socket room
-    if (window.socket) {
-        window.socket.emit('joinChannel', channel._id, window.currentUser.id);
+    const username = document.createElement('span');
+    username.className = 'username';
+    username.textContent = message.author.username;
+    header.appendChild(username);
+    
+    const timestamp = document.createElement('span');
+    timestamp.className = 'timestamp';
+    timestamp.textContent = formatTimestamp(message.createdAt);
+    header.appendChild(timestamp);
+    
+    if (message.editedAt) {
+        const edited = document.createElement('span');
+        edited.className = 'edited';
+        edited.textContent = '(edited)';
+        header.appendChild(edited);
+    }
+    
+    content.appendChild(header);
+    
+    // Body
+    const body = document.createElement('div');
+    body.className = 'message-body';
+    body.textContent = message.content;
+    content.appendChild(body);
+    
+    messageEl.appendChild(content);
+    messagesContainer.appendChild(messageEl);
+}
+
+// Format timestamp
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Scroll to bottom
+function scrollToBottom() {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Send message
+sendMessageBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
+    const content = messageInput.value.trim();
+    
+    if (content && window.currentChannel) {
+        try {
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    content,
+                    channel: window.currentChannel._id,
+                    server: window.currentServer._id
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageInput.value = '';
+                // Message will be received via socket
+            } else {
+                console.error(data.error);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
     }
 }
+
+// Socket.IO event listeners
+window.addEventListener('load', () => {
+    if (window.socket) {
+        window.socket.on('newMessage', (message) => {
+            if (message.channel === window.currentChannel?._id) {
+                addMessage(message);
+                scrollToBottom();
+            }
+        });
+    }
+});
