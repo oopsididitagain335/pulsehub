@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
       return res.status(401).json({ error: 'Access denied' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pulsehub-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { userId: decoded.userId };
     next();
   } catch (error) {
