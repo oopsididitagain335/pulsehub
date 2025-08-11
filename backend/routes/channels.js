@@ -1,3 +1,4 @@
+// backend/routes/channels.js
 const express = require('express');
 const Channel = require('../models/Channel');
 const Server = require('../models/Server');
