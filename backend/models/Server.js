@@ -1,4 +1,4 @@
-// backend/models/Server.js
+cat > backend/models/Server.js << 'EOF'
 const mongoose = require('mongoose');
 
 const serverSchema = new mongoose.Schema({
@@ -31,3 +31,4 @@ const serverSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Server', serverSchema);
+EOF
