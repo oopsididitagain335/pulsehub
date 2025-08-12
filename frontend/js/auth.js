@@ -39,8 +39,13 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
+            // Store the token in localStorage
             localStorage.setItem('token', data.token);
+            
+            // Store the user data in global variables
             window.currentUser = data.user;
+            
+            // Redirect to the home screen
             showHomeScreen();
             loadHomeData();
         } else {
@@ -69,8 +74,13 @@ registerForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
+            // Store the token in localStorage
             localStorage.setItem('token', data.token);
+            
+            // Store the user data in global variables
             window.currentUser = data.user;
+            
+            // Redirect to the home screen
             showHomeScreen();
             loadHomeData();
         } else {
